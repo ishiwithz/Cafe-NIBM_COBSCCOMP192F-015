@@ -15,10 +15,12 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var txtemail: UITextField!
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         btnLogin.layer.cornerRadius = 25.0
+    
         
     }
 
@@ -50,7 +52,11 @@ class ViewController: UIViewController {
             }
             else
             {
-                self.performSegue(withIdentifier: "linklogintoLocation", sender: self)
+                let objSession = SessionManager()
+                
+                objSession.saveLoginState()
+                
+                self.performSegue(withIdentifier: "linklogtoHome", sender: self)
             }
         }
         }

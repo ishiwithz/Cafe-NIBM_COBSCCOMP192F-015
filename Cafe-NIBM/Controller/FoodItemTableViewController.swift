@@ -6,45 +6,92 @@
 //
 
 import UIKit
+import Firebase
+import SwiftyJSON
 
 class FoodItemTableViewController: UITableViewController {
     
-    let FoodArray = ["Submarine","Burger","Pizza","Sandwich"]
-    let PriceArray = ["235","250","1200","200"]
+      var Foodcategories : [FoodCategory] = []
+      var FoodItems : [FoodItem] = []
+    
+      var FoodCollection = [String: Any]()
     
     
+      var ref: DatabaseReference!
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        ref = Database.database().reference()
+        getFoodItems()
+    }
+    
+    func getFoodItems(){
+        ref.child("FoodItems").observe(.value) { (snapshot) in
+            
+            if let data = snapshot.value as? [String : Any] {
+                
+                for categorykeys in data {
+                    
+                    self.Foodcategories.append(FoodCategory(Name: categorykeys.key ))
+                }
+                
+                for category in data {
+                    
+                   // self.Foodcategories.append(FoodCategory(Name: category.key ))
+                    
+                    if let items = category.value as? [String : Any] {
+                        
+                        for Singleitem in items {
+                            
+                            if let iteminfo = Singleitem.value as? [String : Any]{
+                                
+                                
+                                    self.FoodItems.append(FoodItem(
+                                                                Active: iteminfo["Active"] as! Bool,
+                                                                Description: iteminfo["Description"] as!  String,
+                                                                Discount: iteminfo["Discount"] as! Double,
+                                                                Name: iteminfo["Name"] as!  String,
+                                                                Price: iteminfo["Price"] as!  Double,
+                                                                Image: iteminfo["Image"] as! String))
+                            
+                            }
+                        }
+                        
+                    }
+                    
+                    self.tableView.reloadData()
+                    
+                }
+                   
+                
+            }
+        }
+        
+        
+        
+        
     }
 
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 1
+        return Foodcategories.count
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return FoodArray.count
+        return 4
     }
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "FoodItemCell", for: indexPath) as! CustomTableViewCell
         
-        cell.lblFoodName.text = FoodArray[indexPath.row]
-        cell.lblFoodPrice.text = "Rs. "
-        cell.lblFoodPrice.text?.append(PriceArray[indexPath.row])
-        cell.lblFoodPrice.text?.append("/=")
-        cell.imgFoodPic.image = UIImage(named: FoodArray[indexPath.row])
+        cell.textLabel?.text = Foodcategories[indexPath.section].Name
+        
+        cell.setUpView(fooditem: FoodItems[indexPath.row])
         
         return cell
     }
